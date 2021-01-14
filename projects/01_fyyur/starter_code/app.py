@@ -52,6 +52,9 @@ class Venue(db.Model):
     seeking_description = db.Column(db.String(500))
     image_link = db.Column(db.String(500))
 
+    # children = db.relationship('SomeChild', backref='some_parent')
+    shows = db.relationship('Show', backref='Venue', lazy=True, cascade='all, delete-orphan')
+
 
     @property
     def past_shows(self):
@@ -99,7 +102,6 @@ class Artist(db.Model):
   website_link = db.Column(db.String(500))
   seeking_venue = db.Column(db.Boolean, default=False, nullable=False)
   seeking_description = db.Column(db.String(500), nullable=True)
-  shows = db.relationship('Show', backref='Artist', lazy=True)
 
 
   @property
@@ -194,6 +196,7 @@ def venues():
     state = city_state[1]
     venues = Venue.query.filter_by(city=city, state=state).all()
     shows = venues[0].upcoming_shows
+    #shows = db.relationship('Show', backref='venue', lazy=True)
     data.append({
       "city": city,
       "state": state,
@@ -358,7 +361,7 @@ def show_venue(venue_id):
       "artist_name": artist.name,
       "artist_image_link": artist.image_link,
       "start_time": str(show.start_time)
-  })
+    })
 
   upcoming_shows = []
   for show in venue.upcoming_shows:
@@ -368,10 +371,11 @@ def show_venue(venue_id):
       "artist_name": artist.name,
       "artist_image_link": artist.image_link,
       "start_time": str(show.start_time)
-  })
+    })
 
   data["past_shows"] = past_shows
   data["upcoming_shows"] = upcoming_shows
+  #data = list(filter(lambda d: d['id'] == venue_id, venues))[0]
 
   return render_template('pages/show_venue.html', venue=data)
 
