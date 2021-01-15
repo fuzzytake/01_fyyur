@@ -139,13 +139,16 @@ class Show(db.Model):
 # Filters.
 #----------------------------------------------------------------------------#
 
+
 def format_datetime(value, format='medium'):
   date = dateutil.parser.parse(value)
   if format == 'full':
-      format="EEEE MMMM, d, y 'at' h:mma"
+      format = "EEEE MMMM, d, y 'at' h:mma"
   elif format == 'medium':
-      format="EE MM, dd, y h:mma"
+      format = "EE MM, dd, y h:mma"
   return babel.dates.format_datetime(date, format, locale='en')
+
+
 
 app.jinja_env.filters['datetime'] = format_datetime
 
@@ -360,7 +363,7 @@ def show_venue(venue_id):
       "artist_id": show.artist_id,
       "artist_name": artist.name,
       "artist_image_link": artist.image_link,
-      "start_time": str(show.start_time)
+      "start_time": show.start_time.strftime("%m/%d/%Y, %H:%M")
     })
 
   upcoming_shows = []
@@ -370,7 +373,7 @@ def show_venue(venue_id):
       "artist_id": show.artist_id,
       "artist_name": artist.name,
       "artist_image_link": artist.image_link,
-      "start_time": str(show.start_time)
+      "start_time": show.start_time.strftime("%m/%d/%Y, %H:%M")
     })
 
   data["past_shows"] = past_shows
@@ -608,7 +611,7 @@ def show_artist(artist_id):
       "venue_id": venue.id,
       "venue_name": venue.name,
       "venue_image_link": venue.image_link,
-      "start_time": str(show.start_time)
+      "start_time": show.start_time.strftime("%m/%d/%Y, %H:%M")
     })
   upcoming_shows = []
   for show in artist.upcoming_shows:
@@ -617,7 +620,7 @@ def show_artist(artist_id):
       "venue_id": venue.id,
       "venue_name": venue.name,
       "venue_image_link": venue.image_link,
-      "start_time": str(show.start_time)
+      "start_time": show.start_time.strftime("%m/%d/%Y, %H:%M")
     })
   data = {
     "id": artist.id,
