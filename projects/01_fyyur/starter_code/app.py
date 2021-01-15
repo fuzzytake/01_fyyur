@@ -391,6 +391,9 @@ def create_venue_form():
   form = VenueForm()
   return render_template('forms/new_venue.html', form=form)
 
+
+
+
 #  ----------------------------------------------------------------
 #  Create venue POST
 #  ----------------------------------------------------------------
