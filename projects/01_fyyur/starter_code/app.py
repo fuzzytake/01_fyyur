@@ -91,7 +91,7 @@ class Artist(db.Model):
   city = db.Column(db.String(120))
   state = db.Column(db.String(120))
   phone = db.Column(db.String(120))
-  genres = db.Column(db.String(120))
+  genres = db.Column(db.ARRAY(db.String()))
   image_link = db.Column(db.String(500))
   facebook_link = db.Column(db.String(120))
 
@@ -141,11 +141,17 @@ class Show(db.Model):
 
 
 def format_datetime(value, format='medium'):
-  date = dateutil.parser.parse(value)
+  #date = dateutil.parser.parse(value)
+  if isinstance(value, str):
+    date = dateutil.parser.parse(value)
+  else:
+    date = value
+  '''
   if format == 'full':
       format = "EEEE MMMM, d, y 'at' h:mma"
   elif format == 'medium':
       format = "EE MM, dd, y h:mma"
+  '''
   return babel.dates.format_datetime(date, format, locale='en')
 
 
@@ -363,7 +369,7 @@ def show_venue(venue_id):
       "artist_id": show.artist_id,
       "artist_name": artist.name,
       "artist_image_link": artist.image_link,
-      "start_time": show.start_time.strftime("%m/%d/%Y, %H:%M")
+      "start_time": str(show.start_time)
     })
 
   upcoming_shows = []
@@ -373,12 +379,12 @@ def show_venue(venue_id):
       "artist_id": show.artist_id,
       "artist_name": artist.name,
       "artist_image_link": artist.image_link,
-      "start_time": show.start_time.strftime("%m/%d/%Y, %H:%M")
+      "start_time": str(show.start_time)
     })
 
   data["past_shows"] = past_shows
   data["upcoming_shows"] = upcoming_shows
-  #data = list(filter(lambda d: d['id'] == venue_id, venues))[0]
+
 
   return render_template('pages/show_venue.html', venue=data)
 
@@ -406,7 +412,7 @@ def create_venue_submission():
   venue = Venue()
   for field in request.form:
     if field == 'genres':
-      setattr(venue, field, request.form.getlist(field))
+      setattr(venue, field, request.form.getlist('field'))
     elif field == 'seeking_talent':
       setattr(venue, field, True if request.form.get(field) in ('y', True, 't', 'True') else False)
     else:
@@ -614,7 +620,7 @@ def show_artist(artist_id):
       "venue_id": venue.id,
       "venue_name": venue.name,
       "venue_image_link": venue.image_link,
-      "start_time": show.start_time.strftime("%m/%d/%Y, %H:%M")
+      "start_time": show.start_time
     })
   upcoming_shows = []
   for show in artist.upcoming_shows:
@@ -623,7 +629,7 @@ def show_artist(artist_id):
       "venue_id": venue.id,
       "venue_name": venue.name,
       "venue_image_link": venue.image_link,
-      "start_time": show.start_time.strftime("%m/%d/%Y, %H:%M")
+      "start_time": show.start_time
     })
   data = {
     "id": artist.id,
