@@ -1,0 +1,93 @@
+
+
+INSERT INTO 'Artist' (id, name, city, state, phone, genres, image_link, facebook_link, seeking_description, seeking_venue, website_link)
+VALUES (4, 'Guns N Petals', 'San Francisco', 'CA', '326-123-5000', 'Rock n Roll', 'https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80',  'https://www.facebook.com/GunsNPetals', 'Looking for shows to perform at in the San Francisco Bay Area!', True, 'https://www.gunsnpetalsband.com');
+
+UPDATE "Artist"
+SET genres = ('{"Rock n Roll"}')
+WHERE id = 4;
+
+INSERT INTO 'Artist' (id, name, city, state, phone, genres, image_link, facebook_link, seeking_description, seeking_venue, website_link)
+VALUES (5, 'Matt Quevedo', 'New York', 'NY', '300-400-5000', 'Jazz', 'https://images.unsplash.com/photo-1495223153807-b916f75de8c5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=334&q=80', 'https://www.facebook.com/mattquevedo923251523', 'N/A', False, 'N/A');
+
+UPDATE "Artist"
+SET genres = ('{"Jazz"}')
+WHERE id = 5;
+
+INSERT INTO 'Artist' (id, name, city, state, phone, genres, image_link, facebook_link, seeking_description, seeking_venue, website_link)
+VALUES (6, 'The Wild Sax Band', 'San Francisco', 'CA', '432-325-5432', ARRAY ['Jazz', 'Classical'], 'https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80', 'N/A', 'N/A', False, 'N/A');
+
+UPDATE "Artist"
+SET genres = ('{"Jazz", "Classical"}')
+WHERE id = 6;
+
+
+
+
+INSERT INTO "Venue" (id, name, genres, address, city, state, phone, website, facebook_link, seeking_talent, seeking_description, image_link)
+VALUES (1, 'The Musical Hop', '{"Jazz", "Reggae", "Swing", "Classical", "Folk"}', '1015 Folsom Street', 'San Francisco', 'CA', '123-123-1234', 'https://www.themusicalhop.com', 'https://www.facebook.com/TheMusicalHop', True, 'We are on the lookout for a local artist to play every two weeks. Please call us.', 'https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60');
+
+UPDATE "Venue"
+SET genres = ('{"Jazz", "Reggae", "Swing", "Classical", "Folk"}')
+WHERE id = 1;
+
+INSERT INTO "Venue" (id, name, genres, address, city, state, phone, website, facebook_link, seeking_talent, seeking_description, image_link)
+VALUES (2, 'The Dueling Pianos Bar', '{"Classical", "R&B", "Hip-Hop"}', '335 Delancey Street', 'New York', 'NY', '914-003-1132', 'https://www.theduelingpianos.com', 'https://www.facebook.com/theduelingpianos',  False, 'N/A', 'https://images.unsplash.com/photo-1497032205916-ac775f0649ae?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=750&q=80');
+
+UPDATE "Venue"
+SET genres = ('{"Classical", "R&B", "Hip-Hop"}')
+WHERE id = 2;
+
+INSERT INTO "Venue" (id, name, genres, address, city, state, phone, website, facebook_link, seeking_talent, seeking_description, image_link)
+VALUES (3, 'Park Square Live Music & Coffee', '{"Rock n Roll", "Jazz", "Classical", "Folk"}', '34 Whiskey Moore Ave', 'San Francisco', 'CA', '415-000-1234', 'https://www.parksquarelivemusicandcoffee.com', 'https://www.facebook.com/ParkSquareLiveMusicAndCoffee', False, 'N/A', 'https://images.unsplash.com/photo-1485686531765-ba63b07845a7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=747&q=80');
+
+
+UPDATE "Venue"
+SET genres = ('{"Rock n Roll", "Jazz", "Classical", "Folk"}')
+WHERE id = 3;
+
+
+INSERT INTO "Show" (id, start_time, artist_id, venue_id)
+VALUES (1, '2019-05-21T21:30:00.000Z', 4, 1);
+
+INSERT INTO "Show" (id, start_time, artist_id, venue_id)
+VALUES (2, '2019-06-15T23:00:00.000Z', 3, 5);   Key (artist_id)=(3) is not present in table "Artist".
+
+INSERT INTO "Show" (id, start_time, artist_id, venue_id)
+VALUES (3, '2035-04-01T20:00:00.000Z', 3, 6);
+
+INSERT INTO "Show" (id, start_time, artist_id, venue_id)
+VALUES (4, '2035-04-08T20:00:00.000Z', 6, 3);
+
+INSERT INTO "Show" (id, start_time, artist_id, venue_id)
+VALUES (5, '2035-04-15T20:00:00.000Z', 6, 3);
+
+INSERT INTO "Show" (id, start_time, artist_id, venue_id)
+VALUES (6, '2019-05-21T21:30:00.000Z', 4, 1);
+
+INSERT INTO "Show" (id, start_time, artist_id, venue_id)
+VALUES (7, '2019-06-15T23:00:00.000Z', 5, 3);
+
+INSERT INTO "Show" (id, start_time, artist_id, venue_id)
+VALUES (8, '2035-04-01T20:00:00.000Z', 6, 3);
+
+INSERT INTO "Show" (id, start_time, artist_id, venue_id)
+VALUES (9, '2035-04-08T20:00:00.000Z', 6, 3);
+
+INSERT INTO "Show" (id, start_time, artist_id, venue_id)
+VALUES (10, '2035-04-15T20:00:00.000Z', 6, 3);
+
+INSERT INTO "Show" (id, start_time, artist_id, venue_id)
+VALUES (11, '2019-05-21T21:30:00.000Z', 4, 1);
+
+INSERT INTO "Show" (id, start_time, artist_id, venue_id)
+VALUES (12, '2019-06-15T23:00:00.000Z', 5, 3);
+
+INSERT INTO "Show" (id, start_time, artist_id, venue_id)
+VALUES (13, '2035-04-01T20:00:00.000Z', 6, 3);
+
+INSERT INTO "Show" (id, start_time, artist_id, venue_id)
+VALUES (14, '2035-04-08T20:00:00.000Z', 6, 3);
+
+INSERT INTO "Show" (id, start_time, artist_id, venue_id)
+VALUES (15, '2035-04-15T20:00:00.000Z', 6, 3);

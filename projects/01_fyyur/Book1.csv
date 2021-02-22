@@ -1,0 +1,4 @@
+id, name, genres, address, city, state, phone, website, facebook_link, seeking_talent, seeking_description, image_link
+1,The Musical Hop,1015 Folsom Street,San Francisco,CA,123-123-1234,https://www.themusicalhop.com,https://www.facebook.com/TheMusicalHop,t,We are on the lookout for a local artist to play every two weeks. Please call us.,,
+2,The Dueling Pianos Bar,335 Delancey Street,New York,NY,914-003-1132,https://www.theduelingpianos.com,https://www.facebook.com/theduelingpianos,f,N/A,,
+3,Park Square Live Music & Coffee,34 Whiskey Moore Ave,San Francisco,CA,415-000-1234,https://www.parksquarelivemusicandcoffee.com,https://www.facebook.com/ParkSquareLiveMusicAndCoffee,f,N/A,,

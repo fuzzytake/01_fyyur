@@ -5,6 +5,8 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="class-demos" />
+    <orderEntry type="module" module-name="flask_setup_example" />
+    <orderEntry type="module" module-name="Request_Labs" />
   </component>
   <component name="PyDocumentationSettings">
     <option name="format" value="PLAIN" />

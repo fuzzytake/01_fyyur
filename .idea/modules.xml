@@ -3,7 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/FSND.iml" filepath="$PROJECT_DIR$/.idea/FSND.iml" />
-      <module fileurl="file://$USER_HOME$/class-demos/.idea/class-demos.iml" filepath="$USER_HOME$/class-demos/.idea/class-demos.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../Request_Labs/.idea/Request_Labs.iml" filepath="$PROJECT_DIR$/../Request_Labs/.idea/Request_Labs.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../class-demos/.idea/class-demos.iml" filepath="$PROJECT_DIR$/../class-demos/.idea/class-demos.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../flask_setup_example/.idea/flask_setup_example.iml" filepath="$PROJECT_DIR$/../flask_setup_example/.idea/flask_setup_example.iml" />
     </modules>
   </component>
 </project>
