@@ -268,7 +268,7 @@ def create_app(test_config=None):
             search_results = Question.query.filter(
                 Question.question.ilike(f'%{search_term}%')).all()
 
-            if len(search_results) is 0:
+            if len(search_results) == 0:
                 return not_found(404)
 
             search_results_list = [question.format()
