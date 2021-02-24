@@ -8,46 +8,48 @@ import json
 
 from models import setup_db, Question, Category
 
+
+# -------------------------------------------------------------------------------------
+# db is an instance of our database that we can let interact with SQLAlchemy
+# db comes from SQLAlchemy class that we had imported from the Flask SQLAlchemy library
+# we use SQLAlchemy class to link to our Flask application. This links an instance of a database to a Flask app.
+# -------------------------------------------------------------------------------------
+
 db = SQLAlchemy()
 
-# Global variable: questions to be returned per page
+# -------------------------------------------------------------------------------------
+# Global variable: questions to be returned per page at a time
+# -------------------------------------------------------------------------------------
 QUESTIONS_PER_PAGE = 10
 
-
 # -------------------------------------------------------------------------------------
-# Questions' pagination
+# Create and configure the app
 # -------------------------------------------------------------------------------------
-
-def paginate_questions(request, selection):
-    page = request.args.get('page', 1, type=int)
-    start = (page - 1) * QUESTIONS_PER_PAGE
-    end = start + QUESTIONS_PER_PAGE
-
-    questions = [question.format() for question in selection]
-    current_questions = questions[start:end]
-
-    return current_questions
-
 
 def create_app(test_config=None):
-    # create and configure the app
     app = Flask(__name__)
     setup_db(app)
 
-    # -------------------------------------------------------------------------------------
-    # Cross Origin Resource Sharing (CORS) setup
-    # -------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------
+# Cross Origin Resource Sharing (CORS) setup
+# What origin from the client can access those resources (* means any origin)
+# -------------------------------------------------------------------------------------
 
     '''
-  @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
-  '''
+    @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
+    '''
     CORS(app, resources={'/': {'origins': '*'}})
 
     '''
-  @TODO: Use the after_request decorator to set Access-Control-Allow
-  '''
+    @TODO: Use the after_request decorator to set Access-Control-Allow
+    '''
 
-    # Returns the response object after adding Access-Control headers at each request
+# -------------------------------------------------------------------------------------
+# Access-Control-Allow is a CORS header.
+# The application tells the browser that it’s ok to receive requests from other origins: see above
+# Define method that takes the response object as a parameter and add some headers to the response
+# -------------------------------------------------------------------------------------
+
 
     @app.after_request
     def after_request(response):
@@ -58,9 +60,29 @@ def create_app(test_config=None):
                              'GET,PUT,POST,DELETE,OPTIONS')
         return response
 
-    # -------------------------------------------------------------------------------------
-    # GET requests endpoint
-    # -------------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------------
+# We Flask paginate the results by using query parameters and request arguments
+# We paginate to avoid sending huge sets of data at once — bad for speed
+# We send back to the front end just the information the users need
+# request.args is a Python dictionary
+# off of the request object, look at the args object, and get the value of key page.
+# if key does not exist, default to 1
+# -------------------------------------------------------------------------------------
+
+    def retrieve_paginated_questions (request, selection):
+        page = request.args.get('page', 1, type=int)
+        start = (page - 1) * QUESTIONS_PER_PAGE # start with index zero
+        end = start + QUESTIONS_PER_PAGE # ending index
+
+        questions = [question.format() for question in selection]
+        current_questions = questions[start:end] # instead of sending back all the questions, return start to end only
+
+        return current_questions
+
+# -------------------------------------------------------------------------------------
+# GET requests endpoint for categories
+# -------------------------------------------------------------------------------------
 
     '''
     @TODO: 
@@ -69,17 +91,18 @@ def create_app(test_config=None):
     
     Request Parameters: None
     Returns: A JSON object 
-  '''
+    '''
 
     @app.route('/categories')
-    def retrieve_categories():
+    def retrieve_all_categories():
         try:
-            categories = retrieve_categories()
+            # put categories in a list to avoid return non-json serializable object.
+            categories = list(map(Category.format, Category.query.all()))
 
             response_object = {
                 "success": True,
                 "categories": categories,
-                "total_categories": len(categories)
+                "total_categories": len(categories) #keep pagination updated
             }
 
             return jsonify(response_object)
@@ -94,42 +117,43 @@ def create_app(test_config=None):
         finally:
             db.session.close()
 
-    '''
-  @TODO: 
-  Create an endpoint to handle GET requests for questions, 
-  including pagination (every 10 questions). 
-  This endpoint should return a list of questions, 
-  number of total questions, current category, categories. 
-  
-  Request Parameters: An integer page number
-  Returns: A JSON object
-  
+# -------------------------------------------------------------------------------------
+# GET requests endpoint for questions
+# -------------------------------------------------------------------------------------
 
-  TEST: At this point, when you start the application
-  you should see questions and categories generated,
-  ten questions per page and pagination at the bottom of the screen for three pages.
-  Clicking on the page numbers should update the questions. 
-  '''
+    '''
+    @TODO: 
+    Create an endpoint to handle GET requests for questions, 
+    including pagination (every 10 questions). 
+    This endpoint should return a list of questions, 
+    number of total questions, current category, categories. 
+      
+    Request Parameters: An integer page number
+    Returns: A JSON object
+      
+    
+    TEST: At this point, when you start the application
+    you should see questions and categories generated,
+    ten questions per page and pagination at the bottom of the screen for three pages.
+    Clicking on the page numbers should update the questions. 
+    '''
 
     @app.route('/questions')
     def retrieve_questions():
         try:
-            questions = retrieve_questions()
+            selection = Question.query.order_by(Question.id).all()
+            questions = retrieve_paginated_questions(request, selection)
 
-            questions_list = []
+            categories = Category.query.order_by(Category.type).all()
 
             if len(questions) == 0:
                 return not_found(404)
 
-            for question in questions:
-                questions_list.append(question.format())
-            questions_list
-
             response_object = {
                 "success": True,
-                "questions": questions_list,
-                "total_questions": len(questions_list),
-                "categories": retrieve_categories(),
+                "questions": questions,
+                "total_questions": len(selection),
+                "categories": {category.id: category.type for category in categories}, #list interpolation to format
                 "current_category": None
             }
 
@@ -147,32 +171,40 @@ def create_app(test_config=None):
 
 # -----------------------------------------------------------
 # DELETE question
+# we want to delete just a specific question
 # -----------------------------------------------------------
 
     '''
-  @TODO: 
-  Create an endpoint to DELETE question using a specific question ID. 
-  
-  Request Parameters: None
-  Returns: A JSON object
+    @TODO: 
+    Create an endpoint to DELETE question using a specific question ID. 
+      
+    Request Parameters: None
+    Returns: A JSON object
+    
+    TEST: When you click the trash icon next to a question, the question will be removed.
+    This removal will persist in the database and when you refresh the page. 
+    '''
 
-  TEST: When you click the trash icon next to a question, the question will be removed.
-  This removal will persist in the database and when you refresh the page. 
-  '''
-
-    @app.route('/questions/<int:question_id>', methods=['DELETE'])
-    def delete_question(question_id):
+    @app.route('/questions/<int:question_id>', methods=['DELETE']) # the variable question_id
+    def delete_specific_question(question_id): #becomes a parameter of the method and returned as a string
         try:
-            question_to_delete = Question.query.get(question_id)
+            question_to_delete = Question.query.filter(Question.id == question_id).one_or_none()
 
             if question_to_delete is None:
                 return not_found(404)
+
+            question_to_delete.delete()
+            selection = Question.query.order_by(Question.id).all()
+            current_questions = retrieve_paginated_questions(request, selection)
 
             db.session.delete(question_to_delete)
             db.session.commit()
 
             response_object = {
                 "success": True,
+                "deleted": question_id,
+                "questions": current_questions,
+                "total_questions": len(Question.query.all()),
                 "message": f"The question with ID: {question_id} is now deleted."
             }
 
@@ -188,9 +220,9 @@ def create_app(test_config=None):
         finally:
             db.session.close()
 
-        # -----------------------------------------------------------
-        # Add a new question on DB - POST
-        # -----------------------------------------------------------
+# -----------------------------------------------------------
+# Add a new question on DB - POST
+# -----------------------------------------------------------
 
     '''
   @TODO: 
@@ -209,26 +241,33 @@ def create_app(test_config=None):
     @app.route('/questions', methods=['POST'])
     def create_question():
         try:
-            body = request.get_json()
-
+            body = request.get_json() # get the body from the request
+            # from the body we should be able to grab a question, an answer, a difficulty level and category
+            # if any of them don't exist (nobody rated a question yet) we set this to None
             new_question = body.get('question', None)
             new_answer = body.get('answer', None)
             new_difficulty = body.get('difficulty', None)
             new_category = body.get('category', None)
 
-            question_add = Question(
+            question_created = Question(
                 question=new_question, answer=new_answer, category=new_category, difficulty=new_difficulty)
 
-            db.session.add(question_add)
-            db.session.commit()
+            question_created.insert()
+            selection = Question.query.order_by(Question.id).all()
+            current_questions = retrieve_paginated_questions(request, selection)
+
+            #db.session.add(question_created)
+            #db.session.commit()
 
             response_object = {
                 "success": True,
+                "question_created": question_created.id,
+                "questions": current_questions,
+                "total_questions": len(Question.query.all()),
                 "message": f"The question: '{new_question}' is now added to Trivia"
             }
 
             return jsonify(response_object)
-
 
 
         except:
@@ -241,9 +280,9 @@ def create_app(test_config=None):
         finally:
             db.session.close()
 
-    # -----------------------------------------------------------
-    # Search a question from the DB - POST
-    # -----------------------------------------------------------
+# -----------------------------------------------------------
+# Search a question from the DB - POST
+# -----------------------------------------------------------
 
     '''
   @TODO: 
@@ -293,9 +332,9 @@ def create_app(test_config=None):
         finally:
             db.session.close()
 
-    # -----------------------------------------------------------
-    # Retrieve available questions for each category - GET
-    # -----------------------------------------------------------
+# -----------------------------------------------------------
+# Retrieve available questions for each category - GET
+# -----------------------------------------------------------
 
     '''
   @TODO: 
@@ -313,24 +352,14 @@ def create_app(test_config=None):
     def retrieve_questions_by_category(category_id):
 
         try:
-            category = Category.query.get(category_id)
-
-            if category is None:
-               return not_found(404)
-
-            category = category.format()
-
             questions = Question.query.filter(
-                Question.category == category_id).all()
-
-            questions_in_category = [
-              question.format() for question in questions]
+                Question.category == str(category_id)).all()
 
             response_object = {
               "success": True,
-              "questions": questions_in_category,
-              "total_questions": len(questions_in_category),
-              "category": category['type']
+              "questions": [question.format() for question in questions],
+              "total_questions": len(questions),
+              "category": category_id
             }
 
             return jsonify(response_object)
@@ -345,9 +374,9 @@ def create_app(test_config=None):
         finally:
             db.session.close()
 
-    # -----------------------------------------------------------
-    # Play Quiz: returns a random question different from previous questions. - POST
-    # -----------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Play Quiz: returns a random question different from previous questions. - POST
+# ------------------------------------------------------------------------------
 
     '''
   @TODO: 
@@ -370,33 +399,26 @@ def create_app(test_config=None):
         try:
             body = request.get_json()
 
-            previous_questions = body.get['previous_questions']
-            quiz_category = body.get['quiz_category']['id']
+            if not ('quiz_category' in body and 'previous_questions' in body):
+                abort(422)
 
+            category = body.get('quiz_category')
+            previous_questions = body.get('previous_questions')
 
-            question_query = Question.query.filter(
-              Question.category == quiz_category)
+            if category['type'] == 'click':
+                available_questions = Question.query.filter(
+                    Question.id.notin_((previous_questions))).all()
+            else:
+                available_questions = Question.query.filter_by(
+                    category=category['id']).filter(Question.id.notin_((previous_questions))).all()
 
-            for question in previous_questions:
-              question_query = question_query.filter(
-                Question.id != question)
-
-            questions_by_category = question_query.all()
-            questions_list = [
-              question.format() for question in questions_by_category]
-
-            next_question = None
-
-            questions_total = len(questions_list)
-
-            if questions_total > 0:
-              next_question = questions_list[random.randint(
-                0, questions_total - 1)]
+            new_question = available_questions[random.randrange(
+                0, len(available_questions))].format() if len(available_questions) > 0 else None
 
             response_object = {
-              "success": True,
-              "question": next_question
-            }
+                  "success": True,
+                  "question": new_question
+                }
 
             return jsonify(response_object)
 
