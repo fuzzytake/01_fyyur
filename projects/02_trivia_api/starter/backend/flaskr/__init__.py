@@ -96,8 +96,11 @@ def create_app(test_config=None):
     @app.route('/categories')
     def retrieve_all_categories():
         try:
-            # put categories in a list to avoid return non-json serializable object.
-            categories = list(map(Category.format, Category.query.all()))
+            # frontend is expecting categories data in dict format with category id as key and type as value.
+            categories = Category.query.all()
+            categories_dict = {}
+            for category in categories:
+                categories_dict[category.id] = category.type
 
             response_object = {
                 "success": True,
