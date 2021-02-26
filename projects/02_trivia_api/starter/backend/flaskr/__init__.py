@@ -104,8 +104,8 @@ def create_app(test_config=None):
 
             response_object = {
                 "success": True,
-                "categories": categories,
-                "total_categories": len(categories) #keep pagination updated
+                "categories": categories_dict,
+                "total_categories": len(categories) # keep pagination updated
             }
 
             return jsonify(response_object)
