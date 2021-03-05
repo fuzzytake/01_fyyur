@@ -139,9 +139,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertIsNotNone(data['total_questions'])
 
     def test_404_search_question(self):
-        new_search = {
-            'searchTerm': '',
-        }
+        new_search = {'searchTerm': ''}
         res = self.client().post('/questions/search', json=new_search)
         data = json.loads(res.data)
 

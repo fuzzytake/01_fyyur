@@ -194,7 +194,7 @@ def create_app(test_config=None):
             question_to_delete = Question.query.filter(Question.id == question_id).one_or_none()
 
             if question_to_delete is None:
-                return abort(422)
+                return unprocessable(422)
 
             question_to_delete.delete()
             selection = Question.query.order_by(Question.id).all()
@@ -253,7 +253,7 @@ def create_app(test_config=None):
             new_category = body.get('category', None)
 
             if (new_question == None) or (new_answer == None) or (new_category == None) or (new_difficulty == None):
-                abort(422)
+                unprocessable(422)
 
             question_created = Question(
                 question=new_question, answer=new_answer, category=new_category, difficulty=new_difficulty)
@@ -406,7 +406,7 @@ def create_app(test_config=None):
             body = request.get_json()
 
             if not ('quiz_category' in body and 'previous_questions' in body):
-                abort(422)
+                unprocessable(422)
 
             category = body.get('quiz_category')
             previous_questions = body.get('previous_questions')
@@ -472,7 +472,7 @@ def create_app(test_config=None):
         return jsonify({
             "success": False,
             "error": 422,
-            "message": "Unprocessable."
+            "message": "unprocessable"
         }), 422
 
     # Server issue.
