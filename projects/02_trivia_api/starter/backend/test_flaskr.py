@@ -126,7 +126,7 @@ class TriviaTestCase(unittest.TestCase):
 
         self.assertEqual(res.status_code, 422)
         self.assertEqual(data["success"], False)
-        self.assertEqual(data["message"], "Unprocessable.")
+        self.assertEqual(data["message"], "unprocessable.")
 
     def test_search_questions(self):
         new_search = {'searchTerm': 'x'}
@@ -163,7 +163,7 @@ class TriviaTestCase(unittest.TestCase):
 
         self.assertEqual(res.status_code, 404)
         self.assertEqual(data["success"], False)
-        self.assertEqual(data["message"], "resource not found")
+        self.assertEqual(data["message"], "Resource not found.")
 
     def test_play_quiz(self):
         new_quiz_round = {'previous_questions': [],

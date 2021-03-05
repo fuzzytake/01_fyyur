@@ -150,7 +150,7 @@ def create_app(test_config=None):
             categories = Category.query.order_by(Category.type).all()
 
             if len(questions) == 0:
-                return not_found(404)
+                return abort(404)
 
             response_object = {
                 "success": True,
@@ -314,7 +314,7 @@ def create_app(test_config=None):
                 Question.question.ilike(f'%{search_term}%')).all()
 
             if len(search_results) == 0:
-                return not_found(404)
+                return abort(404)
 
             search_results_list = [question.format()
                                    for question in search_results]
@@ -459,7 +459,7 @@ def create_app(test_config=None):
 
     # Item not found in DB
     @app.errorhandler(404)
-    def not_found(error):
+    def abort(error):
         return jsonify({
             "success": False,
             "error": 404,
