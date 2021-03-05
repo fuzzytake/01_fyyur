@@ -194,7 +194,7 @@ def create_app(test_config=None):
             question_to_delete = Question.query.filter(Question.id == question_id).one_or_none()
 
             if question_to_delete is None:
-                return not_found(404)
+                return not_found(422)
 
             question_to_delete.delete()
             selection = Question.query.order_by(Question.id).all()
@@ -251,6 +251,9 @@ def create_app(test_config=None):
             new_answer = body.get('answer', None)
             new_difficulty = body.get('difficulty', None)
             new_category = body.get('category', None)
+
+            if (new_question == None) or (new_answer == None) or (new_category == None) or (new_difficulty == None):
+                abort(422)
 
             question_created = Question(
                 question=new_question, answer=new_answer, category=new_category, difficulty=new_difficulty)
