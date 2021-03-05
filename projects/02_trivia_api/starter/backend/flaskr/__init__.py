@@ -151,7 +151,7 @@ def create_app(test_config=None):
 
             if len(questions) == 0:
                 abort(404)
-                print(len())
+                print(len("adfasdfadsfa"))
 
             response_object = {
                 "success": True,
