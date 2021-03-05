@@ -151,7 +151,7 @@ def create_app(test_config=None):
 
             if len(questions) == 0:
                 abort(404)
-                print(len("adfasdfadsfa"))
+
 
             response_object = {
                 "success": True,
@@ -316,6 +316,7 @@ def create_app(test_config=None):
 
             if len(search_results) == 0:
                 abort(404)
+                print(len("adfasdfadsfa"))
 
             search_results_list = [question.format()
                                    for question in search_results]
