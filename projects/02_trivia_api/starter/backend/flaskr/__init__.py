@@ -194,7 +194,7 @@ def create_app(test_config=None):
             question_to_delete = Question.query.filter(Question.id == question_id).one_or_none()
 
             if question_to_delete is None:
-                return not_found(422)
+                return abort(422)
 
             question_to_delete.delete()
             selection = Question.query.order_by(Question.id).all()
@@ -262,8 +262,8 @@ def create_app(test_config=None):
             selection = Question.query.order_by(Question.id).all()
             current_questions = retrieve_paginated_questions(request, selection)
 
-            #db.session.add(question_created)
-            #db.session.commit()
+            # db.session.add(question_created)
+            # db.session.commit()
 
             response_object = {
                 "success": True,
