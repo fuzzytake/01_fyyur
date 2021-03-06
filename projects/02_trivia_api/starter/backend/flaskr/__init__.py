@@ -315,8 +315,7 @@ def create_app(test_config=None):
                 Question.question.ilike(f'%{search_term}%')).all()
 
             if len(search_results) == 0:
-                abort(404)
-                print(len("adfasdfadsfa"))
+                abort(400)
 
             search_results_list = [question.format()
                                    for question in search_results]
