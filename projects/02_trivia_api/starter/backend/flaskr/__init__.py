@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import random
 import json
+#import stacktrace
 
 from models import setup_db, Question, Category
 
@@ -308,28 +309,21 @@ def create_app(test_config=None):
     @app.route('/questions/search', methods=['POST'])
     def search_questions():
         try:
-            body = request.get_json()
-            search_term = body.get('searchTerm', None)
-
-            search_results = Question.query.filter(
-                Question.question.ilike(f'%{search_term}%')).all()
-
-            if len(search_results) == 0:
-                abort(400)
-
-            search_results_list = [question.format()
-                                   for question in search_results]
+            search_term = request.json['searchTerm']
+            selection = Question.query.filter(
+                Question.question.ilike('%' + search_term + '%')).all()
+            search_results = retrieve_paginated_questions(request, selection)
 
             response_object = {
                 "success": True,
-                "questions": search_results_list,
+                "questions": search_results,
                 "current_category": None,
-                "total_questions": len(search_results_list)
-            }
+                "total_questions": len(search_results)
+            }, 200
 
             return jsonify(response_object)
 
-        except:
+        except Exception as e:
             import traceback
             traceback.print_exc()
             db.session.rollback()
