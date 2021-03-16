@@ -2,7 +2,6 @@ import os
 import unittest
 import json
 from flask_sqlalchemy import SQLAlchemy
-
 from flaskr import create_app
 from models import setup_db, Question, Category
 #import stacktrace
@@ -25,7 +24,13 @@ class TriviaTestCase(unittest.TestCase):
             self.db.init_app(self.app)
             # create all tables
             self.db.create_all()
-    
+
+        self.new_question = {
+            'question': 'What\'s your name',
+            'answer': 'Trivia',
+            'difficulty': 2,
+            'category': 2
+        }
     def tearDown(self):
         """Executed after reach test"""
         pass
@@ -40,7 +45,7 @@ class TriviaTestCase(unittest.TestCase):
     """
 
     def test_retrieve_paginated_questions(self):
-        res = self.client().get('/questions')
+        res = self.client().get('/questions?page=1')
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -50,7 +55,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(len(data['categories']))
 
     def test_404_sent_requesting_questions_beyond_valid_page(self):
-        res = self.client().get('/questions?page=1000', json={'difficulty': 1})
+        res = self.client().get('/questions?page=560')
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 404)
@@ -90,14 +95,13 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(str(data['deleted']), str(question_id))
         self.assertEqual(question, None)
 
-    # 422: request body contains well-formed (i.e., syntactically correct), but semantically erroneous instructions
-    def test_422_sent_deleting_non_existing_question(self):
-        res = self.client().delete('/questions/b') # gibberish b instead of a proper question
+    def test_422_delete_non_existent_question(self):
+        res = self.client().delete('/questions/20000')
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 422)
         self.assertEqual(data['success'], False)
-        self.assertEqual(data['message'], 'Resource not found.')
+        self.assertEqual(data['message'], 'Unprocessable Entity.')
 
     def test_add_question(self):
         new_question = {
@@ -115,38 +119,37 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data["success"], True)
         self.assertEqual(total_questions_after, total_questions_before + 1)
 
-    # 422: request body contains well-formed (i.e., syntactically correct), but semantically erroneous instructions
-    def test_422_add_question(self):
-        new_question = {
-            'question': 'new_question',
-            'answer': 'new_answer',
-            'category': 3  # instead of category name
-        }
-        res = self.client().post('/questions', json=new_question)
+    def test_405_add_question(self):
+        res = self.client().post('/questions/45', json=self.new_question)
         data = json.loads(res.data)
 
-        self.assertEqual(res.status_code, 422)
-        self.assertEqual(data["success"], False)
-        self.assertEqual(data["message"], "unprocessable.")
+        self.assertEqual(res.status_code, 405)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'Method Not Allowed.')
 
     def test_search_questions(self):
-        new_search = {'searchTerm': 'x'}
-        res = self.client().post('/questions/search', json=new_search)
+        body = {
+            'searchTerm': 'title',
+        }
+
+        res = self.client().post('/questions', data=json.dumps(body),
+                                 headers={'Content-Type': 'application/json'})
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
-        self.assertIsNotNone(data['questions'])
-        self.assertIsNotNone(data['total_questions'])
+        self.assertTrue(len(data['questions']))
 
     def test_404_search_question(self):
-        new_search = {'searchTerm': "adfasdfadsfa"}
-        res = self.client().post('/questions/search', json=new_search)
+        new_search = {'searchTerm': "etgnhgbbbb"}
+        res = self.client().post('/search', data=json.dumps(new_search), content_type="application/json")
+
+
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 404)
         self.assertEqual(data["success"], False)
-        self.assertEqual(data["message"], "resource not found")
+        self.assertEqual(data["message"], "Resource not found.")
 
     def test_get_questions_per_category(self):
         res = self.client().get('/categories/2/questions')
@@ -156,7 +159,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], True)
         self.assertTrue(len(data['questions']))
         self.assertTrue(data['total_questions'])
-        self.assertTrue(data['current_category'])
+        #self.assertTrue(data['current_category'])
 
     def test_404_get_questions_per_category(self):
         res = self.client().get('/categories/a/questions')
@@ -176,14 +179,16 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
 
-    def test_422_play_quiz(self):
-        new_quiz_round = {'previous_questions': []}
-        res = self.client().post('/quizzes', json=new_quiz_round)
+    def test_500_play_quiz(self):
+        res = self.client().post(
+            "/quizzes",
+            data=json.dumps({}),
+            content_type="application/json"
+        )
         data = json.loads(res.data)
-
-        self.assertEqual(res.status_code, 422)
+        self.assertEqual(res.status_code, 500)
         self.assertEqual(data["success"], False)
-        self.assertEqual(data["message"], "unprocessable")
+        self.assertEqual(data["message"], "Internal Server Error.")
 
 
 # Make the tests conveniently executable

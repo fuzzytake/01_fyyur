@@ -1,11 +1,12 @@
 import os
 import sys
-from flask import Flask, request, abort, jsonify
+from flask import Flask, request, jsonify, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import random
 import json
-#import stacktrace
+import traceback
+from icecream import ic
 
 from models import setup_db, Question, Category
 
@@ -62,6 +63,7 @@ def create_app(test_config=None):
         return response
 
 
+
 # -------------------------------------------------------------------------------------
 # We Flask paginate the results by using query parameters and request arguments
 # We paginate to avoid sending huge sets of data at once — bad for speed
@@ -73,8 +75,8 @@ def create_app(test_config=None):
 
     def retrieve_paginated_questions (request, selection):
         page = request.args.get('page', 1, type=int)
-        start = (page - 1) * QUESTIONS_PER_PAGE # start with index zero
-        end = start + QUESTIONS_PER_PAGE # ending index
+        start = (page - 1) * QUESTIONS_PER_PAGE  #start with index zero
+        end = start + QUESTIONS_PER_PAGE  #ending index
 
         questions = [question.format() for question in selection]
         current_questions = questions[start:end] # instead of sending back all the questions, return start to end only
@@ -112,7 +114,6 @@ def create_app(test_config=None):
             return jsonify(response_object)
 
         except:
-            import traceback
             traceback.print_exc()
             print(sys.exc_info())
             db.session.rollback()
@@ -146,26 +147,29 @@ def create_app(test_config=None):
     def retrieve_questions():
         try:
             selection = Question.query.order_by(Question.id).all()
-            questions = retrieve_paginated_questions(request, selection)
+            current_questions = retrieve_paginated_questions(request, selection)
 
-            categories = Category.query.order_by(Category.type).all()
 
-            if len(questions) == 0:
+            # If a question is not available, return a 404 error.
+            if (len(current_questions) == 0):
                 abort(404)
 
 
+            # Iterate through the list of categories.
+            categories = list(map(Category.format,Category.query.all()))
+
+
             response_object = {
-                "success": True,
-                "questions": questions,
-                "total_questions": len(selection),
-                "categories": {category.id: category.type for category in categories}, #list interpolation to format
-                "current_category": None
-            }
+                    "success": True,
+                    "questions": current_questions,
+                    "total_questions": len(selection),
+                    "categories": categories,
+                    "current_category": None
+                }
 
             return jsonify(response_object)
 
         except:
-            import traceback
             traceback.print_exc()
             print(sys.exc_info())
             db.session.rollback()
@@ -216,11 +220,10 @@ def create_app(test_config=None):
             return jsonify(response_object)
 
         except:
-            import traceback
             traceback.print_exc()
             print(sys.exc_info())
             db.session.rollback()
-            abort(500)
+            abort(422)
 
         finally:
             db.session.close()
@@ -279,11 +282,10 @@ def create_app(test_config=None):
 
 
         except:
-            import traceback
             traceback.print_exc()
             print(sys.exc_info())
             db.session.rollback()
-            abort(500)
+            abort(422)
 
         finally:
             db.session.close()
@@ -308,27 +310,29 @@ def create_app(test_config=None):
 
     @app.route('/questions/search', methods=['POST'])
     def search_questions():
+        body = request.get_json()
+
+        search = body.get('search', None)
+
         try:
-            search_term = request.json['searchTerm']
-            selection = Question.query.filter(
-                Question.question.ilike('%' + search_term + '%')).all()
-            search_results = retrieve_paginated_questions(request, selection)
+            if search:
+                selection = Question.query.order_by(Question.id).filter(Question.title.ilike('%{}%'.format(search)))
+                search_results = retrieve_paginated_questions(request, selection)
 
             response_object = {
                 "success": True,
                 "questions": search_results,
                 "current_category": None,
-                "total_questions": len(search_results)
+                "total_questions": len(selection.all())
             }, 200
 
             return jsonify(response_object)
 
         except Exception as e:
-            import traceback
             traceback.print_exc()
             db.session.rollback()
             print(sys.exc_info())
-            abort(500)
+            abort(404)
 
         finally:
             db.session.close()
@@ -366,11 +370,10 @@ def create_app(test_config=None):
             return jsonify(response_object)
 
         except:
-            import traceback
             traceback.print_exc()
             print(sys.exc_info())
             db.session.rollback()
-            abort(500)
+            abort(404)
 
         finally:
             db.session.close()
@@ -401,8 +404,9 @@ def create_app(test_config=None):
             body = request.get_json()
 
             if not ('quiz_category' in body and 'previous_questions' in body):
-                unprocessable(422)
+                abort(422)
 
+            category = body.get('quiz_category')
             category = body.get('quiz_category')
             previous_questions = body.get('previous_questions')
 
@@ -424,11 +428,10 @@ def create_app(test_config=None):
             return jsonify(response_object)
 
         except:
-          import traceback
           traceback.print_exc()
           db.session.rollback()
           print(sys.exc_info())
-          abort(500)
+          abort(422)
 
         finally:
           db.session.close()
@@ -443,7 +446,7 @@ def create_app(test_config=None):
   including 404 and 422. 
   '''
 
-    # Malformed request
+    # Malformed request - Invalid JSON in the request. Input validation failures.
     @app.errorhandler(400)
     def bad_request(error):
         return jsonify({
@@ -452,7 +455,7 @@ def create_app(test_config=None):
             "message": "Bad request."
         }), 400
 
-    # Item not found in DB
+    # Item not found in DB - Resource not found at the URL to which the request was sent, likely because incorrect URL.
     @app.errorhandler(404)
     def abort(error):
         return jsonify({
@@ -461,16 +464,16 @@ def create_app(test_config=None):
             "message": "Resource not found."
         }), 404
 
-    # Request not processable
+    # Invalid parameters in the query. The given id does not exist. Data is understood, but is still not valid.
     @app.errorhandler(422)
     def unprocessable(error):
         return jsonify({
             "success": False,
             "error": 422,
-            "message": "unprocessable"
+            "message": "Unprocessable Entity."
         }), 422
 
-    # Server issue.
+    # Server issue. - When an error has occurred within the API.
     @app.errorhandler(500)
     def internal_server_error(error):
         return jsonify({
@@ -479,13 +482,13 @@ def create_app(test_config=None):
             "message": "Internal Server Error."
         }), 500
 
-    # Method Not Allowed.
+    # The resource was found: a PUT on /orders is invalid, but a PUT on /orders/{_id_} is valid.
     @app.errorhandler(405)
     def method_not_allowed(error):
         return jsonify({
             "success": False,
             "error": 405,
-            "message": "Method Not Allowed"
+            "message": "Method Not Allowed."
         }), 405
 
     return app
