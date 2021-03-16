@@ -169,11 +169,11 @@ def create_app(test_config=None):
 
             return jsonify(response_object)
 
-        except:
-            traceback.print_exc()
-            print(sys.exc_info())
-            db.session.rollback()
-            abort(500)
+        # except:
+        #     traceback.print_exc()
+        #     print(sys.exc_info())
+        #     db.session.rollback()
+        #     abort(500)
 
         finally:
             db.session.close()
@@ -457,7 +457,7 @@ def create_app(test_config=None):
 
     # Item not found in DB - Resource not found at the URL to which the request was sent, likely because incorrect URL.
     @app.errorhandler(404)
-    def abort(error):
+    def not_found(error):
         return jsonify({
             "success": False,
             "error": 404,

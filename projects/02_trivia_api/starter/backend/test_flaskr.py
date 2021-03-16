@@ -55,7 +55,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(len(data['categories']))
 
     def test_404_sent_requesting_questions_beyond_valid_page(self):
-        res = self.client().get('/questions?page=560')
+        res = self.client().get('/questions?page=5600')
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 404)
@@ -179,16 +179,13 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
 
-    def test_500_play_quiz(self):
-        res = self.client().post(
-            "/quizzes",
-            data=json.dumps({}),
-            content_type="application/json"
-        )
+    def test_422_play_quiz(self):
+        res = self.client().post('/quizzes')
         data = json.loads(res.data)
-        self.assertEqual(res.status_code, 500)
+
+        self.assertEqual(res.status_code, 422)
         self.assertEqual(data["success"], False)
-        self.assertEqual(data["message"], "Internal Server Error.")
+        self.assertEqual(data["message"], "Unprocessable Entity.")
 
 
 # Make the tests conveniently executable
